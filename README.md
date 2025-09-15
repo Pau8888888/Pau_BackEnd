@@ -1,7 +1,9 @@
 # Pau_BackEnd
 
-Versión: 1.0.0 Alfa
+Tecnologias: Nodejs.
 
-Estado: Liusto para usar
+Versión: 1.0.0 Alfa.
+
+Estado: Liusto para usar.
 
 Descripción: BackEnd de la tienda de coches TopCars.
