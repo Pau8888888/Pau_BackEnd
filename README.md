@@ -6,4 +6,4 @@ Versión: 1.0.0 Alfa.
 
 Estado: Liusto para usar.
 
-Descripción: BackEnd de la tienda de coches TopCars.
+Descripción: BackEnd de la tienda de coches DropPoint.
