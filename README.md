@@ -1,6 +1,6 @@
 # Pau_BackEnd
 
-Tecnologias: Nodejs.
+Tecnologias: Visual Studio Code, Nodejs, Docker.
 
 Versión: 1.0.0 Alfa.
 
