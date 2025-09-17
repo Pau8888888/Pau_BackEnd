@@ -1,6 +1,6 @@
 # Pau_BackEnd
 
-Tecnologies: Visual Studio Code, Nodejs, Docker. GitHub.
+Tecnologies: Visual Studio Code, Nodejs, Docker, GitHub.
 
 Versió: 1.0.0 Alfa.
 
