@@ -2,7 +2,7 @@
 
 
 
-#### 1. Registre / Inici de sessió d’usuari
+### 1. Registre / Inici de sessió d’usuari
 
 - L’usuari s’ha de poder registrar amb correu i contrasenya.
 
@@ -14,7 +14,7 @@
 
 
 
-#### 2. Catàleg de productes
+### 2. Catàleg de productes
 
 - Mostrar una llista de sabatilles amb imatge, nom, preu i estoc disponible.
 
@@ -26,7 +26,7 @@
 
 
 
-#### 3. Carret de la compra
+### 3. Carret de la compra
 
 - Afegir productes al carret des del catàleg o la fitxa del producte.
 
@@ -38,7 +38,7 @@
 
 
 
-#### 4. Procés de compra
+### 4. Procés de compra
 
 - L’usuari ha de poder introduir dades d’enviament i seleccionar mètode d’enviament.
 
@@ -48,7 +48,7 @@
 
 
 
-#### 5. Gestió d’estoc (per administradors)
+### 5. Gestió d’estoc (per administradors)
 
 - Afegir, editar i eliminar sabatilles del catàleg.
 
@@ -58,7 +58,7 @@
 
 
 
-#### 6. Opinions i valoracions
+### 6. Opinions i valoracions
 
 - Els usuaris poden deixar comentaris i donar estrelles als productes.
 
@@ -66,7 +66,7 @@
 
 
 
-#### 7. Altres
+### 7. Altres
 
 - Sistema de favorits (guardar sabatilles per comprar després).
 
