@@ -1,9 +1,9 @@
 # Pau_BackEnd
 
-Tecnologias: Visual Studio Code, Nodejs, Docker.
+Tecnologies: Visual Studio Code, Nodejs, Docker.
 
-Versión: 1.0.0 Alfa.
+Versió: 1.0.0 Alfa.
 
-Estado: Liusto para usar.
+Estat: Llest per utilitzar.
 
-Descripción: BackEnd de la tienda de coches DropPoint.
+Descripció: BackEnd de la botiga de sabates DropPoint.
