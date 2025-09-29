@@ -1,0 +1,18 @@
+# ADR-001: Base de dades del projecte
+
+## Context
+Necessitem una base de dades flexible per a emmagatzemar productes, usuaris i comandes amb relacions que poden créixer amb el temps. 
+La botiga necessita ser escalable i permetre afegir nous camps als productes (colors, mides, promocions) sense grans canvis d’esquema.
+
+## Decisió
+Farem servir **MongoDB** com a base de dades principal, gestionada via **Docker Compose** per facilitar el desplegament local i en entorns de producció.
+
+## Conseqüències
++ **Positives**:
+  - Gran flexibilitat per afegir nous camps i entitats.
+  - Bona integració amb Node.js/Express i ORM com Mongoose.
+  - Escalabilitat horitzontal senzilla.
++ **Negatives**:
+  - Menys adequat per a consultes altament relacionals.
+  - Requereix aprendre i gestionar Mongoose per mantenir coherència.
+
