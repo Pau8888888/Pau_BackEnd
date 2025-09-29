@@ -5,7 +5,7 @@ Necessitem organitzar el projecte d’e-commerce de manera que backend i fronten
 Hi ha dues opcions: usar un **monorepo** (un sol repositori amb frontend i backend) o **multirepo** (repositoris separats un per frontend i un per backend).
 
 ## Decisió
-Farem servir **repositoris separats**:  
+Farem servir **multirepo**:  
 - **Repo 1:** backend (Node.js, Express, MongoDB)  
 - **Repo 2:** frontend (React o Vue)  
 Això permet equips diferents treballar de manera independent i desplegar de forma desacoblada.
