@@ -13,5 +13,5 @@ app.get('/', (req, res) => res.send('API Ecommerce en marxa'));
 
 app.use('/api/products', productRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Servidor actiu al port ${PORT}`));
