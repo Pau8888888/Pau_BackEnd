@@ -20,16 +20,23 @@ const producteSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
-  categoria: {
+  imatge: {
     type: String,
+    default: 'default.jpg',
+  },
+  categoria: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Categoria',
     required: true,
-    index: true, // índice para búsquedas por categoría
+  },
+  creatPer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Usuari',
   },
 }, {
   timestamps: true,
 });
 
-// Índex compuesto opcional: categoría + precio
 producteSchema.index({ categoria: 1, preu: -1 });
 
 module.exports = mongoose.model('Producte', producteSchema);

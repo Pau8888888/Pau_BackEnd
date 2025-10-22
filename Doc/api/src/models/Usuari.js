@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const usuariSchema = new mongoose.Schema({
   nom: {
@@ -9,7 +10,7 @@ const usuariSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true, // índice único
+    unique: true,
     lowercase: true,
     trim: true,
   },
@@ -24,10 +25,19 @@ const usuariSchema = new mongoose.Schema({
     default: 'usuari',
   },
 }, {
-  timestamps: true, // crea createdAt i updatedAt automàticament
+  timestamps: true,
 });
 
-// Índex opcional para búsquedas rápidas por email
+usuariSchema.pre('save', async function (next) {
+  if (!this.isModified('contrasenya')) return next();
+  this.contrasenya = await bcrypt.hash(this.contrasenya, 10);
+  next();
+});
+
+usuariSchema.methods.compararContrasenya = async function (password) {
+  return await bcrypt.compare(password, this.contrasenya);
+};
+
 usuariSchema.index({ email: 1 });
 
 module.exports = mongoose.model('Usuari', usuariSchema);
