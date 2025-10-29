@@ -7,4 +7,4 @@ const productService = require('../services/productService'); const createProduc
 };
 module.exports = {
     createProduct,
-}; 
+};
