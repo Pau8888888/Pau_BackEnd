@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 
-const producteSchema = new mongoose.Schema({
-  nom: {
+const productSchema = new mongoose.Schema({
+  name: {
     type: String,
     required: true,
     trim: true,
   },
-  descripcio: {
+  description: {
     type: String,
     required: true,
   },
-  preu: {
+  price: {
     type: Number,
     required: true,
     min: 0,
@@ -20,23 +20,12 @@ const producteSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
-  imatge: {
+  category: {
     type: String,
-    default: 'default.jpg',
-  },
-  categoria: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Categoria',
     required: true,
-  },
-  creatPer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Usuari',
   },
 }, {
   timestamps: true,
 });
 
-producteSchema.index({ categoria: 1, preu: -1 });
-
-module.exports = mongoose.model('Producte', producteSchema);
+module.exports = mongoose.model('Product', productSchema);
