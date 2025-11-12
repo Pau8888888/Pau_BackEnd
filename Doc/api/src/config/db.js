@@ -9,8 +9,7 @@ const connectDB = async () => {
     });
 
     console.log('✅ MongoDB connectat correctament');
-    console.log('📦 Base de dades utilitzada:', conn.connection.name);
-    console.log('🌍 Host:', conn.connection.host);
+    
   } catch (err) {
     console.error('❌ Error en connectar a MongoDB:', err.message);
     process.exit(1);

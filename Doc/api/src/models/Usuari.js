@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const usuariSchema = new mongoose.Schema({
-  nom: {
+  name: {
     type: String,
     required: true,
     trim: true,
@@ -14,30 +14,33 @@ const usuariSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
-  contrasenya: {
+  password: { 
     type: String,
     required: true,
     minlength: 6,
-  },
-  rol: {
-    type: String,
-    enum: ['usuari', 'admin'],
-    default: 'usuari',
   },
 }, {
   timestamps: true,
 });
 
+// 🔐 Encriptar contrasenya abans de guardar
 usuariSchema.pre('save', async function (next) {
-  if (!this.isModified('contrasenya')) return next();
-  this.contrasenya = await bcrypt.hash(this.contrasenya, 10);
-  next();
+  if (!this.isModified('password')) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
-usuariSchema.methods.compararContrasenya = async function (password) {
-  return await bcrypt.compare(password, this.contrasenya);
+// 🔐 Comparar contrasenya
+usuariSchema.methods.comparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
 };
 
+// Índex per optimitzar cerques
 usuariSchema.index({ email: 1 });
 
 module.exports = mongoose.model('Usuari', usuariSchema);
