@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    // Connexió a MongoDB amb la URI de l'arxiu .env
+    // 🔧 Afegeix aquest log per veure quina URI es connecta
+    console.log('Intentant connectar a la URI:', process.env.MONGO_URI);
+
     const conn = await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
