@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// const bcrypt = require('bcryptjs'); // 🔁 Comenta aquesta línia
+const bcrypt = require('bcryptjs');
 
 const usuariSchema = new mongoose.Schema({
   name: {
@@ -19,6 +19,11 @@ const usuariSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+  role: {
+    type: String,
+    enum: ['client', 'admin'],
+    default: 'client',
+  },
   refreshToken: {
     type: String,
   },
@@ -28,8 +33,7 @@ const usuariSchema = new mongoose.Schema({
 
 // 🔐 Comparar contrasenya (opcional, si es vol fer així)
 usuariSchema.methods.comparePassword = function (password) {
-  // Ara compara directament
-  return password === this.password;
+  return bcrypt.compare(password, this.password);
 };
 
 // Índex per optimitzar cerques

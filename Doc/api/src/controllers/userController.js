@@ -21,12 +21,12 @@ const registrar = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { user, tokens } = await usuariService.loginUsuari(req.body);
-    res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true, secure: false });
     return res.status(200).json({
       status: 'success',
       message: 'Login correcte',
       data: {
         id: user.id,
+        role: user.role,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
       },
@@ -42,11 +42,10 @@ const login = async (req, res) => {
 // 🔹 Logout amb invalidació del refresh token
 const logout = async (req, res) => {
   try {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.body?.refreshToken;
     if (!refreshToken) return res.status(401).json({ status: 'error', message: 'No hi ha refresh token' });
 
     await usuariService.logoutUsuari(refreshToken);
-    res.clearCookie('refreshToken');
     res.status(204).send();
   } catch (error) {
     res.status(500).json({
@@ -59,15 +58,15 @@ const logout = async (req, res) => {
 // 🔹 Renovació de tokens amb rotació segura
 const refreshToken = async (req, res) => {
   try {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.body?.refreshToken;
     if (!refreshToken) return res.status(401).json({ status: 'error', message: 'No hi ha refresh token' });
 
     const { user, tokens } = await usuariService.refreshTokenUsuari(refreshToken);
-    res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true, secure: false });
     return res.status(200).json({
       status: 'success',
       data: {
         id: user.id,
+        role: user.role,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
       },

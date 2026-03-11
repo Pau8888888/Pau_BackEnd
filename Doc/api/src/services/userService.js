@@ -1,18 +1,25 @@
 const Usuari = require('../models/Usuari');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 // 🔹 Registrar usuari
 const registrarUsuari = async ({ name, email, password }) => {
   const existe = await Usuari.findOne({ email });
   if (existe) throw new Error('Email ja està en ús');
 
-  const nouUsuari = new Usuari({ name, email, password });
+  if (!password || password.length < 6) {
+    throw new Error('La contrasenya ha de tenir almenys 6 caràcters');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const nouUsuari = new Usuari({ name, email, password: hashedPassword });
   const usuariGuardat = await nouUsuari.save();
 
   return {
     id: usuariGuardat._id,
     name: usuariGuardat.name,
     email: usuariGuardat.email,
+    role: usuariGuardat.role,
   };
 };
 
@@ -21,11 +28,11 @@ const loginUsuari = async ({ email, password }) => {
   const usuari = await Usuari.findOne({ email });
   if (!usuari) throw new Error('Usuari no trobat');
 
-  const valid = password.trim() === usuari.password;
+  const valid = await bcrypt.compare(password, usuari.password);
   if (!valid) throw new Error('Contrasenya incorrecta');
 
   const accessToken = jwt.sign(
-    { id: usuari._id },
+    { id: usuari._id, role: usuari.role },
     process.env.ACCESS_TOKEN_SECRET || 'accessSecret',
     { expiresIn: '15m' }
   );
@@ -40,7 +47,7 @@ const loginUsuari = async ({ email, password }) => {
   await usuari.save();
 
   return {
-    user: { id: usuari._id, name: usuari.name, email: usuari.email },
+    user: { id: usuari._id, name: usuari.name, email: usuari.email, role: usuari.role },
     tokens: { accessToken, refreshToken }
   };
 };
@@ -65,7 +72,7 @@ const refreshTokenUsuari = async (refreshToken) => {
   if (!usuari) throw new Error('Usuari no trobat o refresh token invàlid');
 
   const newAccessToken = jwt.sign(
-    { id: usuari._id },
+    { id: usuari._id, role: usuari.role },
     process.env.ACCESS_TOKEN_SECRET || 'accessSecret',
     { expiresIn: '15m' }
   );
@@ -80,7 +87,7 @@ const refreshTokenUsuari = async (refreshToken) => {
   await usuari.save();
 
   return {
-    user: { id: usuari._id, name: usuari.name, email: usuari.email },
+    user: { id: usuari._id, name: usuari.name, email: usuari.email, role: usuari.role },
     tokens: { accessToken: newAccessToken, refreshToken: newRefreshToken }
   };
 };
@@ -90,7 +97,12 @@ const actualizarContrasenya = async (id, novaContrasenya) => {
   const usuari = await Usuari.findById(id);
   if (!usuari) throw new Error('Usuari no trobat');
 
-  usuari.password = novaContrasenya;
+  if (!novaContrasenya || novaContrasenya.length < 6) {
+    throw new Error('La nova contrasenya ha de tenir almenys 6 caràcters');
+  }
+
+  const hashedPassword = await bcrypt.hash(novaContrasenya, 10);
+  usuari.password = hashedPassword;
   await usuari.save();
 
   return {

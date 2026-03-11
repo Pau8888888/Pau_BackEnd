@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const productRoutes = require('./routes/productRoutes');
 const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
 const carritoRoutes = require('./routes/carritoRoutes');
 const orderRoutes = require('./routes/orderRoutes'); // ✅ Nueva ruta
 
@@ -28,6 +29,7 @@ app.get('/', (req, res) => res.send('API Ecommerce en marcha'));
 // ✅ Rutas API
 app.use('/api/products', productRoutes);
 app.use('/api/usuaris', userRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/carrito', carritoRoutes);
 app.use('/api', orderRoutes); // ✅ Ruta de pedidos
 
