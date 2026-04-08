@@ -4,13 +4,20 @@ const carritoController = require('../controllers/carritoController');
 
 /**
  * @swagger
- * /api/carrito/{usuarioId}:
+ * tags:
+ *   name: Carrito
+ *   description: Gestión del carrito de compras
+ */
+
+/**
+ * @swagger
+ * /api/carrito/{userId}:
  *   get:
  *     summary: Obtener el carrito de un usuario
  *     tags: [Carrito]
  *     parameters:
  *       - in: path
- *         name: usuarioId
+ *         name: userId
  *         required: true
  *         schema:
  *           type: string
@@ -21,17 +28,17 @@ const carritoController = require('../controllers/carritoController');
  *       404:
  *         description: Carrito no encontrado
  */
-router.get('/:usuarioId', carritoController.obtenerCarrito);
+router.get('/:userId', carritoController.obtenerCarrito);
 
 /**
  * @swagger
- * /api/carrito/{usuarioId}:
+ * /api/carrito/{userId}:
  *   post:
  *     summary: Agregar un producto al carrito
  *     tags: [Carrito]
  *     parameters:
  *       - in: path
- *         name: usuarioId
+ *         name: userId
  *         required: true
  *         schema:
  *           type: string
@@ -43,31 +50,31 @@ router.get('/:usuarioId', carritoController.obtenerCarrito);
  *           schema:
  *             type: object
  *             properties:
- *               productoId:
+ *               productId:
  *                 type: string
- *               cantidad:
+ *               quantity:
  *                 type: number
  *     responses:
  *       200:
  *         description: Producto agregado
  */
-router.post('/:usuarioId', carritoController.agregarProducto);
+router.post('/:userId', carritoController.agregarProducto);
 
 /**
  * @swagger
- * /api/carrito/{usuarioId}/{productoId}:
+ * /api/carrito/{userId}/{productId}:
  *   put:
  *     summary: Actualizar cantidad de un producto en el carrito
  *     tags: [Carrito]
  *     parameters:
  *       - in: path
- *         name: usuarioId
+ *         name: userId
  *         required: true
  *         schema:
  *           type: string
  *         description: ID del usuario
  *       - in: path
- *         name: productoId
+ *         name: productId
  *         required: true
  *         schema:
  *           type: string
@@ -79,29 +86,29 @@ router.post('/:usuarioId', carritoController.agregarProducto);
  *           schema:
  *             type: object
  *             properties:
- *               cantidad:
+ *               quantity:
  *                 type: number
  *     responses:
  *       200:
  *         description: Cantidad actualizada
  */
-router.put('/:usuarioId/:productoId', carritoController.actualizarCantidad);
+router.put('/:userId/:productId', carritoController.actualizarCantidad);
 
 /**
  * @swagger
- * /api/carrito/{usuarioId}/{productoId}:
+ * /api/carrito/{userId}/{productId}:
  *   delete:
  *     summary: Eliminar un producto del carrito
  *     tags: [Carrito]
  *     parameters:
  *       - in: path
- *         name: usuarioId
+ *         name: userId
  *         required: true
  *         schema:
  *           type: string
  *         description: ID del usuario
  *       - in: path
- *         name: productoId
+ *         name: productId
  *         required: true
  *         schema:
  *           type: string
@@ -110,17 +117,17 @@ router.put('/:usuarioId/:productoId', carritoController.actualizarCantidad);
  *       200:
  *         description: Producto eliminado
  */
-router.delete('/:usuarioId/:productoId', carritoController.eliminarProducto);
+router.delete('/:userId/:productId', carritoController.eliminarProducto);
 
 /**
  * @swagger
- * /api/carrito/{usuarioId}:
+ * /api/carrito/{userId}:
  *   delete:
  *     summary: Vaciar el carrito de un usuario
  *     tags: [Carrito]
  *     parameters:
  *       - in: path
- *         name: usuarioId
+ *         name: userId
  *         required: true
  *         schema:
  *           type: string
@@ -129,6 +136,6 @@ router.delete('/:usuarioId/:productoId', carritoController.eliminarProducto);
  *       200:
  *         description: Carrito vaciado
  */
-router.delete('/:usuarioId', carritoController.vaciarCarrito);
+router.delete('/:userId', carritoController.vaciarCarrito);
 
 module.exports = router;

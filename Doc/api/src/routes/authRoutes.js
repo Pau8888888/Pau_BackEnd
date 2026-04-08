@@ -4,9 +4,16 @@ const authController = require('../controllers/authController');
 
 /**
  * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Gestión de autenticación y tokens
+ */
+
+/**
+ * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Registre d'un nou usuari
+ *     summary: Registro de un nuevo usuario
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -15,17 +22,21 @@ const authController = require('../controllers/authController');
  *           schema:
  *             type: object
  *             properties:
- *               nom:
+ *               name:
  *                 type: string
  *               email:
  *                 type: string
  *               password:
  *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [client, admin]
+ *                 description: Rol del usuario (opcional, por defecto 'client')
  *     responses:
  *       201:
- *         description: Usuari creat correctament
+ *         description: Usuario creado correctamente
  *       400:
- *         description: Error en les dades
+ *         description: Error en los datos
  */
 router.post('/register', authController.register);
 
@@ -33,7 +44,7 @@ router.post('/register', authController.register);
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Login d'usuari
+ *     summary: Login de usuario
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -48,9 +59,9 @@ router.post('/register', authController.register);
  *                 type: string
  *     responses:
  *       200:
- *         description: Login correcte
+ *         description: Login correcto
  *       401:
- *         description: Credencials incorrectes
+ *         description: Credenciales incorrectas
  */
 router.post('/login', authController.login);
 
@@ -58,13 +69,13 @@ router.post('/login', authController.login);
  * @swagger
  * /api/auth/refresh:
  *   post:
- *     summary: Refrescar token d'autenticació
+ *     summary: Refrescar token de autenticación
  *     tags: [Auth]
  *     responses:
  *       200:
- *         description: Token refrescat
+ *         description: Token refrescado
  *       403:
- *         description: No autoritzat / Token invàlid
+ *         description: No autorizado / Token inválido
  */
 router.post('/refresh', authController.refresh);
 
@@ -72,11 +83,11 @@ router.post('/refresh', authController.refresh);
  * @swagger
  * /api/auth/logout:
  *   post:
- *     summary: Tancar sessió d'usuari
+ *     summary: Cerrar sesión de usuario
  *     tags: [Auth]
  *     responses:
  *       200:
- *         description: Logout correcte
+ *         description: Logout correcto
  */
 router.post('/logout', authController.logout);
 

@@ -1,13 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const authMiddleware = require('../middleware/authMiddleware');
+const roleMiddleware = require('../middleware/roleMiddleware');
+
+/**
+ * @swagger
+ * tags:
+ *   name: Productos
+ *   description: Gestión de productos
+ */
 
 /**
  * @swagger
  * /api/products:
  *   post:
  *     summary: Crear un producto
- *     tags: [Products]
+ *     tags: [Productos]
  *     requestBody:
  *       required: true
  *       content:
@@ -31,14 +40,14 @@ const productController = require('../controllers/productController');
  *       400:
  *         description: Error en la creación
  */
-router.post('/', productController.createProduct);
+router.post('/', authMiddleware, roleMiddleware('admin'), productController.createProduct);
 
 /**
  * @swagger
  * /api/products:
  *   get:
  *     summary: Obtener todos los productos
- *     tags: [Products]
+ *     tags: [Productos]
  *     responses:
  *       200:
  *         description: Lista de productos
@@ -50,7 +59,7 @@ router.get('/', productController.getAllProducts);
  * /api/products/{id}:
  *   get:
  *     summary: Obtener un producto por ID
- *     tags: [Products]
+ *     tags: [Productos]
  *     parameters:
  *       - in: path
  *         name: id
@@ -71,7 +80,7 @@ router.get('/:id', productController.getProductById);
  * /api/products/{id}:
  *   put:
  *     summary: Actualizar un producto por ID
- *     tags: [Products]
+ *     tags: [Productos]
  *     parameters:
  *       - in: path
  *         name: id
@@ -102,14 +111,14 @@ router.get('/:id', productController.getProductById);
  *       404:
  *         description: Producto no encontrado
  */
-router.put('/:id', productController.updateProduct);
+router.put('/:id', authMiddleware, roleMiddleware('admin'), productController.updateProduct);
 
 /**
  * @swagger
  * /api/products/{id}:
  *   delete:
  *     summary: Eliminar un producto por ID
- *     tags: [Products]
+ *     tags: [Productos]
  *     parameters:
  *       - in: path
  *         name: id
@@ -123,6 +132,6 @@ router.put('/:id', productController.updateProduct);
  *       404:
  *         description: Producto no encontrado
  */
-router.delete('/:id', productController.deleteProduct);
+router.delete('/:id', authMiddleware, roleMiddleware('admin'), productController.deleteProduct);
 
 module.exports = router;

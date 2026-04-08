@@ -5,10 +5,7 @@ const connectDB = async () => {
     // 🔧 Afegeix aquest log per veure quina URI es connecta
     console.log('Intentant connectar a la URI:', process.env.MONGO_URI);
 
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(process.env.MONGO_URI);
 
     console.log('✅ MongoDB connectat correctament');
     

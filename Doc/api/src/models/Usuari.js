@@ -31,7 +31,7 @@ const usuariSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-// 🔐 Comparar contrasenya (opcional, si es vol fer així)
+// Comparar contrasenya
 usuariSchema.methods.comparePassword = function (password) {
   return bcrypt.compare(password, this.password);
 };

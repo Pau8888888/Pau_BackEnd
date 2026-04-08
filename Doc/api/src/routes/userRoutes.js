@@ -1,12 +1,20 @@
 const express = require('express');
 const routerUsuari = express.Router();
 const userController = require('../controllers/userController');
+const authMiddleware = require('../middleware/authMiddleware');
+
+/**
+ * @swagger
+ * tags:
+ *   name: Usuarios
+ *   description: Gestión de usuarios
+ */
 
 /**
  * @swagger
  * /api/usuaris/register:
  *   post:
- *     summary: Registrar un nou usuari
+ *     summary: Registrar un nuevo usuario
  *     tags: [Usuarios]
  *     requestBody:
  *       required: true
@@ -15,7 +23,7 @@ const userController = require('../controllers/userController');
  *           schema:
  *             type: object
  *             properties:
- *               nom:
+ *               name:
  *                 type: string
  *               email:
  *                 type: string
@@ -23,7 +31,7 @@ const userController = require('../controllers/userController');
  *                 type: string
  *     responses:
  *       201:
- *         description: Usuari creat
+ *         description: Usuario creado
  */
 routerUsuari.post('/register', userController.registrar);
 
@@ -31,7 +39,7 @@ routerUsuari.post('/register', userController.registrar);
  * @swagger
  * /api/usuaris/login:
  *   post:
- *     summary: Iniciar sessió
+ *     summary: Iniciar sesión
  *     tags: [Usuarios]
  *     requestBody:
  *       required: true
@@ -46,7 +54,7 @@ routerUsuari.post('/register', userController.registrar);
  *                 type: string
  *     responses:
  *       200:
- *         description: Login correcte
+ *         description: Login correcto
  */
 routerUsuari.post('/login', userController.login);
 
@@ -54,11 +62,11 @@ routerUsuari.post('/login', userController.login);
  * @swagger
  * /api/usuaris/logout:
  *   post:
- *     summary: Tancar sessió
+ *     summary: Cerrar sesión
  *     tags: [Usuarios]
  *     responses:
  *       200:
- *         description: Sessió tancada
+ *         description: Sesión cerrada
  */
 routerUsuari.post('/logout', userController.logout);
 
@@ -70,7 +78,7 @@ routerUsuari.post('/logout', userController.logout);
  *     tags: [Usuarios]
  *     responses:
  *       200:
- *         description: Token refrescat
+ *         description: Token refrescado
  */
 routerUsuari.post('/refresh', userController.refreshToken);
 
@@ -78,7 +86,7 @@ routerUsuari.post('/refresh', userController.refreshToken);
  * @swagger
  * /api/usuaris/password/{id}:
  *   put:
- *     summary: Actualitzar contrasenya per ID
+ *     summary: Actualizar contraseña por ID
  *     tags: [Usuarios]
  *     parameters:
  *       - in: path
@@ -86,7 +94,7 @@ routerUsuari.post('/refresh', userController.refreshToken);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID de l'usuari
+ *         description: ID del usuario
  *     requestBody:
  *       required: true
  *       content:
@@ -98,8 +106,8 @@ routerUsuari.post('/refresh', userController.refreshToken);
  *                 type: string
  *     responses:
  *       200:
- *         description: Contrasenya actualitzada
+ *         description: Contraseña actualizada
  */
-routerUsuari.put('/password/:id', userController.actualizarContrasenya);
+routerUsuari.put('/password/:id', authMiddleware, userController.actualizarContrasenya);
 
 module.exports = routerUsuari;

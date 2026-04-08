@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 // 🔹 Registrar usuari
-const registrarUsuari = async ({ name, email, password }) => {
+const registrarUsuari = async ({ name, email, password, role }) => {
   const existe = await Usuari.findOne({ email });
   if (existe) throw new Error('Email ja està en ús');
 
@@ -12,7 +12,17 @@ const registrarUsuari = async ({ name, email, password }) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const nouUsuari = new Usuari({ name, email, password: hashedPassword });
+  
+  // Asignar rol explícitamente
+  const userRole = (role === 'admin' || role === 'client') ? role : 'client';
+  
+  const nouUsuari = new Usuari({ 
+    name, 
+    email, 
+    password: hashedPassword,
+    role: userRole 
+  });
+  
   const usuariGuardat = await nouUsuari.save();
 
   return {

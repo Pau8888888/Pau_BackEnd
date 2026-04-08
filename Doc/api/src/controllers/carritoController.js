@@ -3,12 +3,12 @@ const Carrito = require('../models/Carrito');
 // Obtener carrito por usuario
 exports.obtenerCarrito = async (req, res) => {
   try {
-    const { usuarioId } = req.params;
+    const { userId } = req.params;
     
-    let carrito = await Carrito.findOne({ usuario: usuarioId });
+    let carrito = await Carrito.findOne({ user: userId });
     
     if (!carrito) {
-      carrito = new Carrito({ usuario: usuarioId, productos: [] });
+      carrito = new Carrito({ user: userId, products: [] });
       await carrito.save();
     }
     
@@ -21,28 +21,28 @@ exports.obtenerCarrito = async (req, res) => {
 // Agregar producto al carrito
 exports.agregarProducto = async (req, res) => {
   try {
-    const { usuarioId } = req.params;
-    const { productoId, nombre, precio, cantidad, imagen } = req.body;
+    const { userId } = req.params;
+    const { productId, name, price, quantity, image } = req.body;
     
-    let carrito = await Carrito.findOne({ usuario: usuarioId });
+    let carrito = await Carrito.findOne({ user: userId });
     
     if (!carrito) {
-      carrito = new Carrito({ usuario: usuarioId, productos: [] });
+      carrito = new Carrito({ user: userId, products: [] });
     }
     
-    const productoExistente = carrito.productos.find(
-      p => p.productoId.toString() === productoId
+    const productoExistente = carrito.products.find(
+      p => p.productId.toString() === productId
     );
     
     if (productoExistente) {
-      productoExistente.cantidad += cantidad;
+      productoExistente.quantity += quantity;
     } else {
-      carrito.productos.push({
-        productoId,
-        nombre,
-        precio,
-        cantidad,
-        imagen
+      carrito.products.push({
+        productId,
+        name,
+        price,
+        quantity,
+        image
       });
     }
     
@@ -58,24 +58,24 @@ exports.agregarProducto = async (req, res) => {
 // Actualizar cantidad
 exports.actualizarCantidad = async (req, res) => {
   try {
-    const { usuarioId, productoId } = req.params;
-    const { cantidad } = req.body;
+    const { userId, productId } = req.params;
+    const { quantity } = req.body;
     
-    const carrito = await Carrito.findOne({ usuario: usuarioId });
+    const carrito = await Carrito.findOne({ user: userId });
     
     if (!carrito) {
       return res.status(404).json({ mensaje: 'Carrito no encontrado' });
     }
     
-    const producto = carrito.productos.find(
-      p => p.productoId.toString() === productoId
+    const producto = carrito.products.find(
+      p => p.productId.toString() === productId
     );
     
     if (!producto) {
       return res.status(404).json({ mensaje: 'Producto no encontrado' });
     }
     
-    producto.cantidad = cantidad;
+    producto.quantity = quantity;
     carrito.calcularTotal();
     await carrito.save();
     
@@ -88,16 +88,16 @@ exports.actualizarCantidad = async (req, res) => {
 // Eliminar producto
 exports.eliminarProducto = async (req, res) => {
   try {
-    const { usuarioId, productoId } = req.params;
+    const { userId, productId } = req.params;
     
-    const carrito = await Carrito.findOne({ usuario: usuarioId });
+    const carrito = await Carrito.findOne({ user: userId });
     
     if (!carrito) {
       return res.status(404).json({ mensaje: 'Carrito no encontrado' });
     }
     
-    carrito.productos = carrito.productos.filter(
-      p => p.productoId.toString() !== productoId
+    carrito.products = carrito.products.filter(
+      p => p.productId.toString() !== productId
     );
     
     carrito.calcularTotal();
@@ -112,15 +112,15 @@ exports.eliminarProducto = async (req, res) => {
 // Vaciar carrito
 exports.vaciarCarrito = async (req, res) => {
   try {
-    const { usuarioId } = req.params;
+    const { userId } = req.params;
     
-    const carrito = await Carrito.findOne({ usuario: usuarioId });
+    const carrito = await Carrito.findOne({ user: userId });
     
     if (!carrito) {
       return res.status(404).json({ mensaje: 'Carrito no encontrado' });
     }
     
-    carrito.productos = [];
+    carrito.products = [];
     carrito.total = 0;
     await carrito.save();
     
