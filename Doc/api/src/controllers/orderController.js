@@ -1,81 +1,100 @@
 const Order = require('../models/Order');
 
-// Crear un nuevo pedido
+// Crear un nuevo pedido (normalment via checkout, però deixem l'endpoint per si de cas)
 const createOrder = async (req, res) => {
   try {
-    const { productos, total, cliente, estado } = req.body;
+    const { products, total, shippingAddress, status } = req.body;
 
-    // Validar que hay productos
-    if (!productos || productos.length === 0) {
+    if (!products || products.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'El pedido debe contener al menos un producto'
+        message: 'La comanda ha de contenir almenys un producte'
       });
     }
 
-    // Crear nuevo pedido
-    const nuevoPedido = new Order({
-      productos,
+    const newOrder = new Order({
+      user: req.user.userId,
+      products,
       total,
-      cliente,
-      estado: estado || 'pendiente'
+      shippingAddress,
+      status: status || 'pending'
     });
 
-    // Guardar en la base de datos
-    await nuevoPedido.save();
+    await newOrder.save();
 
     res.status(201).json({
       success: true,
-      message: 'Pedido creado correctamente',
-      pedido: nuevoPedido
+      message: 'Comanda creada correctament',
+      order: newOrder
     });
 
   } catch (error) {
-    console.error('Error al crear pedido:', error);
+    console.error('Error al crear comanda:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al procesar el pedido',
+      message: 'Error al processar la comanda',
       error: error.message
     });
   }
 };
 
-// Obtener todos los pedidos
+// Obtenir totes les comandes (Admin)
 const getOrders = async (req, res) => {
   try {
-    const pedidos = await Order.find().sort({ fechaCreacion: -1 });
+    const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
     res.json({
       success: true,
-      pedidos
+      orders
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener pedidos'
+      message: 'Error al obtenir comandes'
     });
   }
 };
 
-// Obtener un pedido por ID
-const getOrderById = async (req, res) => {
+// Obtenir comandes de l'usuari actual
+const getUserOrders = async (req, res) => {
   try {
-    const pedido = await Order.findById(req.params.id);
-    
-    if (!pedido) {
-      return res.status(404).json({
-        success: false,
-        message: 'Pedido no encontrado'
-      });
-    }
-
+    const orders = await Order.find({ user: req.user.userId }).sort({ createdAt: -1 });
     res.json({
       success: true,
-      pedido
+      orders
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener el pedido'
+      message: 'Error al obtenir les teves comandes'
+    });
+  }
+};
+
+// Obtenir una comanda per ID
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('user', 'name email');
+    
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Comanda no trobada'
+      });
+    }
+
+    // Verificar si és l'usuari de la comanda o un admin
+    if (order.user._id.toString() !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'No tens permís per veure aquesta comanda' });
+    }
+
+    res.json({
+      success: true,
+      order
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtenir la comanda'
     });
   }
 };
@@ -83,5 +102,6 @@ const getOrderById = async (req, res) => {
 module.exports = {
   createOrder,
   getOrders,
+  getUserOrders,
   getOrderById
-};
+};

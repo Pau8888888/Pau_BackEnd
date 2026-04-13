@@ -4,7 +4,7 @@ const createPedido = async (req, res) => {
     try {
         const payload = req.body;
         const pedidoData = {
-           usuari: payload.user || payload.usuari,
+           usuari: payload.user || payload.usuari || payload.usuario,
            adrecaEnviament: payload.shippingAddress || payload.adrecaEnviament,
            metodePagament: payload.paymentMethod || payload.metodePagament,
            total: payload.total,
@@ -24,3 +24,4 @@ const createPedido = async (req, res) => {
 module.exports = {
     createPedido,
 };
+

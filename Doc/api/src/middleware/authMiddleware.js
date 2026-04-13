@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 
+// RBAC
+
 module.exports = (req, res, next) => {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -13,6 +15,10 @@ module.exports = (req, res, next) => {
     req.user = { id: decoded.id, role: decoded.role };
     return next();
   } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expirat' });
+    }
     return res.status(401).json({ message: 'Token invàlid' });
   }
 };
+

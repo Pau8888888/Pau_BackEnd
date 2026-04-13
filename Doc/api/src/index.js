@@ -10,23 +10,29 @@ const carritoRoutes = require('./routes/carritoRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const categoriaRoutes = require('./routes/categoriaRoutes');
 const pedidoRoutes = require('./routes/pedidoRoutes');
+
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./docs/swagger');
 
+const checkoutRoutes = require('./routes/checkoutRoutes');
+
 const app = express();
 
-// ✅ Configurar CORS (IMPORTANTE para que React pueda conectar)
+// ✅ Configurar CORS
 app.use(cors({
-  origin: 'http://localhost:5173', // Puerto de tu frontend React
+  origin: 'http://localhost:5173',
   credentials: true
 }));
 
-// ✅ Middleware para JSON y formularios
+// ✅ Conexió a MongoDB
+connectDB();
+
+// ✅ Ruta de webhook de Stripe (HA D'ANAR ABANS de express.json())
+app.use('/api/checkout', checkoutRoutes);
+
+// ✅ Middleware para JSON y formularios (per a la resta de rutes)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// ✅ Conexión a MongoDB
-connectDB();
 
 // ✅ Ruta básica
 app.get('/', (req, res) => res.send('API Ecommerce en marcha'));
@@ -37,9 +43,11 @@ app.use('/api/products', productRoutes);
 app.use('/api/usuaris', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/carrito', carritoRoutes);
-app.use('/api', orderRoutes); // ✅ Ruta de orders
-app.use('/api/categories', categoriaRoutes); // ✅ Ruta de categories
-app.use('/api/pedidos', pedidoRoutes); // ✅ Ruta de pedidos
+app.use('/api/orders', orderRoutes);
+app.use('/api/categories', categoriaRoutes);
+app.use('/api/pedidos', pedidoRoutes);
+
+
 
 // ✅ Arrancar servidor
 const PORT = process.env.PORT || 4000;
