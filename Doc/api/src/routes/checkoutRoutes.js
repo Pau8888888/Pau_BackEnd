@@ -4,7 +4,7 @@ const checkoutController = require('../controllers/checkoutController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // POST /api/checkout/create-session - Protegit per auth
-router.post('/create-session', authMiddleware, checkoutController.createCheckoutSession);
+router.post('/create-session', express.json(), authMiddleware, checkoutController.createCheckoutSession);
 
 // POST /api/checkout/webhook - Stripe necessita que el body sigui RAW per validar la firma
 // Aquest endpoint NO ha de tenir authMiddleware perquè Stripe no envia tokens JWT

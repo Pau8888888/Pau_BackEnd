@@ -12,6 +12,7 @@
   "type": "commonjs",
   "description": "API Ecommerce con Node.js, Express y MongoDB",
   "dependencies": {
+    "@stripe/stripe-js": "^9.2.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",

@@ -2,7 +2,7 @@ const Usuari = require('../models/Usuari');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-// 🔹 Registrar usuari
+// Registrar usuari
 const registrarUsuari = async ({ name, email, password, role }) => {
   const existe = await Usuari.findOne({ email });
   if (existe) throw new Error('Email ja està en ús');

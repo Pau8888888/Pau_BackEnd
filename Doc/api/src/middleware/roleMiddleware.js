@@ -8,3 +8,5 @@ module.exports = (...roles) => {
     return next();
   };
 };
+
+// Verificar qué tienes permitido hacer segun tu rol

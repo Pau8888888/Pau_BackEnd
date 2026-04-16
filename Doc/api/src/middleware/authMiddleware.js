@@ -12,7 +12,7 @@ module.exports = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || 'accessSecret');
-    req.user = { id: decoded.id, role: decoded.role };
+    req.user = { id: decoded.id, role: decoded.role, email: decoded.email};
     return next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
@@ -22,3 +22,4 @@ module.exports = (req, res, next) => {
   }
 };
 
+// Autenticación, confirma que tienes token

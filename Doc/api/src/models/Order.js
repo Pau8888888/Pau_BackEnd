@@ -26,8 +26,12 @@ const orderSchema = new mongoose.Schema({
     default: 'pending'
   },
   shippingAddress: {
-    type: String,
-    required: true
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    postalCode: { type: String, required: true },
+    country: { type: String, required: true }
   },
   stripeSessionId: String,
   paymentIntentId: String,
@@ -39,4 +43,4 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.model('Order', orderSchema);

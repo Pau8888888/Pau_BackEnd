@@ -1,4 +1,5 @@
 const Stripe = require('stripe');
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 
@@ -36,10 +37,39 @@ const createCheckoutSession = async (req, res) => {
 
     // Validacions de productes, stock i preus
     for (const item of products) {
-      const dbProduct = await Product.findById(item.productId);
-      
+      // 🔧 BUSQUEDA MEJORADA: Soporta diferentes formatos de ID
+      let dbProduct = null;
+      const pid = item.productId;
+
+      console.log(`🔍 Buscando producto - ID recibido: ${pid} (tipo: ${typeof pid})`);
+
+      // Intento 1: Si parece un ObjectId válido (24 caracteres hex)
+      if (typeof pid === 'string' && pid.length === 24 && mongoose.Types.ObjectId.isValid(pid)) {
+        dbProduct = await Product.findById(pid);
+        console.log(`✅ Búsqueda por ObjectId: ${dbProduct ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
+      }
+
+      // Intento 2: Buscar por campo 'id' numérico (si existe en tu schema)
       if (!dbProduct) {
-        return res.status(404).json({ message: `Producte no trobat: ${item.name}` });
+        dbProduct = await Product.findOne({ id: pid });
+        console.log(`✅ Búsqueda por campo 'id': ${dbProduct ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
+      }
+
+      // Intento 3: Buscar por campo 'productId' (si existe en tu schema)
+      if (!dbProduct) {
+        dbProduct = await Product.findOne({ productId: pid });
+        console.log(`✅ Búsqueda por campo 'productId': ${dbProduct ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
+      }
+
+      if (!dbProduct) {
+        console.error(`❌ Producto no encontrado. ID: ${pid}`);
+        // Lista todos los productos disponibles para debug
+        const allProducts = await Product.find({}, 'name id _id');
+        console.log('📦 Productos disponibles:', allProducts);
+        return res.status(404).json({
+          message: `Producte no trobat: ${item.name || 'Desconocido'} (ID: ${pid})`,
+          availableProducts: allProducts
+        });
       }
 
       if (dbProduct.stock < item.quantity) {
@@ -56,6 +86,7 @@ const createCheckoutSession = async (req, res) => {
           product_data: {
             name: dbProduct.name,
             description: dbProduct.description,
+            images: dbProduct.images?.[0] ? [dbProduct.images[0]] : [],
           },
           unit_amount: Math.round(itemPrice * 100), // Stripe usa cèntims
         },
@@ -72,7 +103,7 @@ const createCheckoutSession = async (req, res) => {
 
     // Creem la comanda en estat "pendent"
     const order = new Order({
-      user: req.user.userId,
+      user: req.user.id,
       products: orderProducts,
       total: total,
       status: 'pending',
@@ -99,7 +130,10 @@ const createCheckoutSession = async (req, res) => {
     order.stripeSessionId = session.id;
     await order.save();
 
-    res.json({ id: session.id });
+    res.json({
+      id: session.id,
+      url: session.url
+    });
 
   } catch (error) {
     console.error('Error en createCheckoutSession:', error);
@@ -121,8 +155,8 @@ const stripeWebhook = async (req, res) => {
 
   try {
     event = stripe.webhooks.constructEvent(
-      req.body, 
-      sig, 
+      req.body,
+      sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
@@ -133,7 +167,7 @@ const stripeWebhook = async (req, res) => {
   // Handle the event
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    
+
     try {
       // Busquem la comanda
       const orderId = session.metadata.orderId;
@@ -150,7 +184,7 @@ const stripeWebhook = async (req, res) => {
             $inc: { stock: -item.quantity }
           });
         }
-        
+
         console.log(`Order ${orderId} marked as paid.`);
       }
     } catch (error) {

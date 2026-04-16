@@ -40,6 +40,7 @@ const login = async (req, res) => {
 };
 
 // POST /api/auth/refresh
+// Si req.body existe: Extrae el valor de refreshToken con normalidad.
 const refresh = async (req, res) => {
   try {
     const refreshToken = req.body?.refreshToken;
