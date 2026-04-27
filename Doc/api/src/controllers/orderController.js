@@ -13,7 +13,7 @@ const createOrder = async (req, res) => {
     }
 
     const newOrder = new Order({
-      user: req.user.userId,
+      user: req.user.id,
       products,
       total,
       shippingAddress,
@@ -57,7 +57,7 @@ const getOrders = async (req, res) => {
 // Obtenir comandes de l'usuari actual
 const getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user.userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json({
       success: true,
       orders
@@ -83,7 +83,7 @@ const getOrderById = async (req, res) => {
     }
 
     // Verificar si és l'usuari de la comanda o un admin
-    if (order.user._id.toString() !== req.user.userId && req.user.role !== 'admin') {
+    if (order.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'No tens permís per veure aquesta comanda' });
     }
 
@@ -104,4 +104,4 @@ module.exports = {
   getOrders,
   getUserOrders,
   getOrderById
-};
+};

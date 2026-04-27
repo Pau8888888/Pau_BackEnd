@@ -56,6 +56,7 @@ const logout = async (req, res) => {
 };
 
 // 🔹 Renovació de tokens amb rotació segura
+    // Si req.body té refreshToken continua amb normalitat, sino salta l'error
 const refreshToken = async (req, res) => {
   try {
     const refreshToken = req.body?.refreshToken;

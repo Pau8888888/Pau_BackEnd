@@ -13,6 +13,6 @@ router.get('/:id', getOrderById);
 router.post('/', createOrder);
 
 // Rutes per a admins
-router.get('/', roleMiddleware(['admin']), getOrders);
+router.get('/', roleMiddleware('admin'), getOrders);
 
 module.exports = router;
