@@ -18,9 +18,20 @@ const checkoutRoutes = require('./routes/checkoutRoutes');
 
 const app = express();
 
-// ✅ Configurar CORS
+// ✅ Configurar CORS (accepta dev i producció)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost',
+  'http://frontend',
+  'http://frontend:80'
+];
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Permetre peticions sense origin (Postman, curl, Nginx proxy)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS no permès per a: ' + origin));
+  },
   credentials: true
 }));
 
@@ -51,6 +62,6 @@ app.use('/api/pedidos', pedidoRoutes);
 
 // ✅ Arrancar servidor
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor activo en http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor activo en http://0.0.0.0:${PORT}`);
 });

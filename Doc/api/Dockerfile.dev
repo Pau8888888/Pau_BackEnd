@@ -1,0 +1,18 @@
+# ============================================
+# Dockerfile - Backend DESENVOLUPAMENT
+# ============================================
+FROM node:20-alpine
+WORKDIR /app
+
+# Instal·lar totes les dependències (inclou devDependencies)
+COPY package*.json ./
+RUN npm install
+
+# Copiar codi font
+COPY . .
+
+# Port de l'aplicació
+EXPOSE 4000
+
+# Arrancar amb nodemon per hot-reload
+CMD ["npm", "run", "dev"]
