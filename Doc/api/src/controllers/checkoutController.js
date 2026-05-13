@@ -11,7 +11,7 @@ const getStripeClient = () => {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 };
 
-const createCheckoutSession = async (req, res) => {
+const createCheckoutSession = async (req, res, next) => {
   try {
     const stripe = getStripeClient();
 
@@ -24,61 +24,64 @@ const createCheckoutSession = async (req, res) => {
     const { products, shippingAddress } = req.body;
 
     if (!products || products.length === 0) {
-      return res.status(400).json({ message: "El carret està buit" });
+      return res.status(400).json({ message: 'El carret esta buit' });
     }
 
     if (!shippingAddress) {
-      return res.status(400).json({ message: "L'adreça d'enviament és obligatòria" });
+      return res.status(400).json({ message: "L'adreca d'enviament es obligatoria" });
     }
 
     const lineItems = [];
     const orderProducts = [];
     let total = 0;
 
-    // Validacions de productes, stock i preus
     for (const item of products) {
-      // 🔧 BUSQUEDA MEJORADA: Soporta diferentes formatos de ID
       let dbProduct = null;
       const pid = item.productId;
+      const fallbackName = typeof item.name === 'string' ? item.name.trim() : '';
+      const quantity = Number(item.quantity);
 
-      console.log(`🔍 Buscando producto - ID recibido: ${pid} (tipo: ${typeof pid})`);
-
-      // Intento 1: Si parece un ObjectId válido (24 caracteres hex)
-      if (typeof pid === 'string' && pid.length === 24 && mongoose.Types.ObjectId.isValid(pid)) {
-        dbProduct = await Product.findById(pid);
-        console.log(`✅ Búsqueda por ObjectId: ${dbProduct ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
-      }
-
-      // Intento 2: Buscar por campo 'id' numérico (si existe en tu schema)
-      if (!dbProduct) {
-        dbProduct = await Product.findOne({ id: pid });
-        console.log(`✅ Búsqueda por campo 'id': ${dbProduct ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
-      }
-
-      // Intento 3: Buscar por campo 'productId' (si existe en tu schema)
-      if (!dbProduct) {
-        dbProduct = await Product.findOne({ productId: pid });
-        console.log(`✅ Búsqueda por campo 'productId': ${dbProduct ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
-      }
-
-      if (!dbProduct) {
-        console.error(`❌ Producto no encontrado. ID: ${pid}`);
-        // Lista todos los productos disponibles para debug
-        const allProducts = await Product.find({}, 'name id _id');
-        console.log('📦 Productos disponibles:', allProducts);
-        return res.status(404).json({
-          message: `Producte no trobat: ${item.name || 'Desconocido'} (ID: ${pid})`,
-          availableProducts: allProducts
+      if (!Number.isInteger(quantity) || quantity <= 0) {
+        return res.status(400).json({
+          message: `Quantitat invalida per a ${item.name || 'producte'}`
         });
       }
 
-      if (dbProduct.stock < item.quantity) {
+      req.log.debug({ productLookupId: pid, lookupType: typeof pid }, 'Looking up product');
+
+      if (typeof pid === 'string' && pid.length === 24 && mongoose.Types.ObjectId.isValid(pid)) {
+        dbProduct = await Product.findById(pid);
+        req.log.debug({ strategy: 'objectId', found: Boolean(dbProduct) }, 'Product lookup attempted');
+      }
+
+      if (!dbProduct) {
+        dbProduct = await Product.findOne({ id: pid });
+        req.log.debug({ strategy: 'id', found: Boolean(dbProduct) }, 'Product lookup attempted');
+      }
+
+      if (!dbProduct) {
+        dbProduct = await Product.findOne({ productId: pid });
+        req.log.debug({ strategy: 'productId', found: Boolean(dbProduct) }, 'Product lookup attempted');
+      }
+
+      if (!dbProduct && fallbackName) {
+        dbProduct = await Product.findOne({ name: fallbackName });
+        req.log.debug({ strategy: 'name', fallbackName, found: Boolean(dbProduct) }, 'Product lookup attempted');
+      }
+
+      if (!dbProduct) {
+        req.log.warn({ productLookupId: pid, fallbackName }, 'Product not found in checkout');
+        return res.status(404).json({
+          message: `Producte no trobat: ${item.name || 'Desconegut'} (ID: ${pid})`
+        });
+      }
+
+      if (dbProduct.stock < quantity) {
         return res.status(400).json({ message: `No hi ha prou stock per a ${dbProduct.name}` });
       }
 
-      // Utilitzem el preu de la DB, no el del frontend per seguretat
       const itemPrice = dbProduct.price;
-      total += itemPrice * item.quantity;
+      total += itemPrice * quantity;
 
       lineItems.push({
         price_data: {
@@ -86,33 +89,32 @@ const createCheckoutSession = async (req, res) => {
           product_data: {
             name: dbProduct.name,
             description: dbProduct.description,
-            images: dbProduct.images?.[0] ? [dbProduct.images[0]] : [],
+            images: dbProduct.images?.[0] ? [dbProduct.images[0]] : []
           },
-          unit_amount: Math.round(itemPrice * 100), // Stripe usa cèntims
+          unit_amount: Math.round(itemPrice * 100)
         },
-        quantity: item.quantity,
+        quantity
       });
 
       orderProducts.push({
         productId: dbProduct._id,
         name: dbProduct.name,
         price: itemPrice,
-        quantity: item.quantity
+        quantity
       });
     }
 
-    // Creem la comanda en estat "pendent"
     const order = new Order({
       user: req.user.id,
       products: orderProducts,
-      total: total,
+      total,
       status: 'pending',
-      shippingAddress: shippingAddress
+      shippingAddress
     });
 
     await order.save();
+    req.log.info({ orderId: order._id, userId: req.user.id, total: order.total }, 'Order created');
 
-    // Creem la sessió de Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -126,18 +128,27 @@ const createCheckoutSession = async (req, res) => {
       }
     });
 
-    // Guardem el sessionId a la comanda
     order.stripeSessionId = session.id;
     await order.save();
+
+    req.log.info({ orderId: order._id, stripeSessionId: session.id }, 'Stripe session created');
 
     res.json({
       id: session.id,
       url: session.url
     });
-
   } catch (error) {
-    console.error('Error en createCheckoutSession:', error);
-    res.status(500).json({ message: "Error al crear la sessió de pagament", error: error.message });
+    req.log.error({ error: error.message }, 'Payment failed');
+    if (!error.statusCode) {
+      if (error?.type === 'StripeInvalidRequestError' || error?.type === 'invalid_request_error') {
+        error.statusCode = 400;
+      } else if (error?.statusCode) {
+        error.statusCode = error.statusCode;
+      } else {
+        error.statusCode = 500;
+      }
+    }
+    next(error);
   }
 };
 
@@ -160,16 +171,14 @@ const stripeWebhook = async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.error(`Webhook Error: ${err.message}`);
+    req.log.error({ error: err.message }, 'Webhook signature validation failed');
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Handle the event
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
 
     try {
-      // Busquem la comanda
       const orderId = session.metadata.orderId;
       const order = await Order.findById(orderId);
 
@@ -178,24 +187,79 @@ const stripeWebhook = async (req, res) => {
         order.paymentIntentId = session.payment_intent;
         await order.save();
 
-        // Actualitzem l'stock
         for (const item of order.products) {
           await Product.findByIdAndUpdate(item.productId, {
             $inc: { stock: -item.quantity }
           });
         }
 
-        console.log(`Order ${orderId} marked as paid.`);
+        req.log.info({ orderId, paymentIntentId: session.payment_intent }, 'Payment confirmed');
       }
     } catch (error) {
-      console.error('Error updating order after webhook:', error);
+      req.log.error({ error: error.message }, 'Error updating order after webhook');
     }
   }
 
   res.json({ received: true });
 };
 
+const confirmCheckoutSession = async (req, res, next) => {
+  try {
+    const stripe = getStripeClient();
+
+    if (!stripe) {
+      return res.status(503).json({
+        message: 'Stripe no configurat: falta STRIPE_SECRET_KEY al fitxer .env'
+      });
+    }
+
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ message: 'sessionId es obligatori' });
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (!session || session.payment_status !== 'paid') {
+      return res.status(400).json({ message: 'La sessio encara no esta pagada' });
+    }
+
+    const orderId = session.metadata?.orderId || session.client_reference_id;
+    if (!orderId) {
+      return res.status(404).json({ message: 'No s ha trobat la comanda associada' });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Comanda no trobada' });
+    }
+
+    if (order.status === 'pending') {
+      order.status = 'paid';
+      order.paymentIntentId = session.payment_intent;
+      await order.save();
+
+      for (const item of order.products) {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: -item.quantity }
+        });
+      }
+    }
+
+    return res.json({
+      success: true,
+      orderId: order._id,
+      status: order.status
+    });
+  } catch (error) {
+    req.log.error({ error: error.message }, 'Error confirming checkout session');
+    return next(error);
+  }
+};
+
 module.exports = {
   createCheckoutSession,
-  stripeWebhook
+  stripeWebhook,
+  confirmCheckoutSession
 };

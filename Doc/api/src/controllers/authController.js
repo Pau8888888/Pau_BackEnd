@@ -1,26 +1,27 @@
 const userService = require('../services/userService');
 
 // POST /api/auth/register
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   try {
     const user = await userService.registrarUsuari(req.body);
+    req.log.info({ userId: user.id, email: user.email }, 'User registered successfully');
     return res.status(201).json({
       status: 'success',
       message: 'Usuari registrat correctament',
       data: user,
     });
   } catch (error) {
-    return res.status(400).json({
-      status: 'error',
-      message: error.message,
-    });
+    error.statusCode = 400;
+    return next(error);
   }
 };
 
 // POST /api/auth/login
-const login = async (req, res) => {
+const login = async (req, res, next) => {
+  const { email } = req.body || {};
   try {
     const { user, tokens } = await userService.loginUsuari(req.body);
+    req.log.info({ userId: user.id, email: user.email }, 'User logged in successfully');
     return res.status(200).json({
       status: 'success',
       message: 'Login correcte',
@@ -32,23 +33,25 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(400).json({
-      status: 'error',
-      message: error.message,
-    });
+    req.log.warn({ email }, 'Invalid login attempt');
+    error.statusCode = 400;
+    return next(error);
   }
 };
 
 // POST /api/auth/refresh
 // Si req.body existe: Extrae el valor de refreshToken con normalidad.
-const refresh = async (req, res) => {
+const refresh = async (req, res, next) => {
   try {
     const refreshToken = req.body?.refreshToken;
     if (!refreshToken) {
-      return res.status(401).json({ status: 'error', message: 'No hi ha refresh token' });
+      const err = new Error('No hi ha refresh token');
+      err.statusCode = 401;
+      return next(err);
     }
 
     const { user, tokens } = await userService.refreshTokenUsuari(refreshToken);
+    req.log.info({ userId: user.id }, 'Token refreshed successfully');
     return res.status(200).json({
       status: 'success',
       data: {
@@ -59,28 +62,25 @@ const refresh = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
+    return next(error);
   }
 };
 
 // POST /api/auth/logout
-const logout = async (req, res) => {
+const logout = async (req, res, next) => {
   try {
     const refreshToken = req.body?.refreshToken;
     if (!refreshToken) {
-      return res.status(401).json({ status: 'error', message: 'No hi ha refresh token' });
+      const err = new Error('No hi ha refresh token');
+      err.statusCode = 401;
+      return next(err);
     }
 
     await userService.logoutUsuari(refreshToken);
+    req.log.info({ userId: req.user?.id || null }, 'User logged out');
     return res.status(204).send();
   } catch (error) {
-    return res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
+    return next(error);
   }
 };
 

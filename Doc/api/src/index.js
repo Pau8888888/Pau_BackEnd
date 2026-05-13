@@ -10,6 +10,11 @@ const carritoRoutes = require('./routes/carritoRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const categoriaRoutes = require('./routes/categoriaRoutes');
 const pedidoRoutes = require('./routes/pedidoRoutes');
+const healthRoutes = require('./routes/healthRoutes');
+const requestId = require('./middleware/requestId');
+const httpLogger = require('./middleware/httpLogger');
+const errorHandler = require('./middleware/errorHandler');
+const logger = require('./config/logger');
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./docs/swagger');
@@ -21,6 +26,8 @@ const app = express();
 // ✅ Configurar CORS (accepta dev i producció)
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:4000',
+  'http://localhost:8081',
   'http://localhost',
   'http://frontend',
   'http://frontend:80'
@@ -37,6 +44,9 @@ app.use(cors({
 
 // ✅ Conexió a MongoDB
 connectDB();
+
+app.use(requestId);
+app.use(httpLogger);
 
 // ✅ Ruta de webhook de Stripe (HA D'ANAR ABANS de express.json())
 app.use('/api/checkout', checkoutRoutes);
@@ -57,11 +67,17 @@ app.use('/api/carrito', carritoRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/categories', categoriaRoutes);
 app.use('/api/pedidos', pedidoRoutes);
-
+app.use('/api', healthRoutes);
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/debug/error', (req, res, next) => {
+    next(new Error('Error de prova per observabilitat'));
+  });
+}
+app.use(errorHandler);
 
 
 // ✅ Arrancar servidor
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor activo en http://0.0.0.0:${PORT}`);
+  logger.info(`Servidor actiu a http://0.0.0.0:${PORT}`);
 });
